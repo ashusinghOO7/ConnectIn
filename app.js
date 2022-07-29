@@ -24,7 +24,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 mongoose.connect(
-  "mongodb+srv://Ankit123:huihuihui@connectin.tf6dy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+  "mongodb+srv://Ashutosh:<password>@cluster0.d2gr3.mongodb.net/?retryWrites=true&w=majority",
   { useNewUrlParser: true }
 );
 
