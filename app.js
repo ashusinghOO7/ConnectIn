@@ -4,9 +4,11 @@ const ejs = require("ejs");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
 const passportLocalMongoose = require("passport-local-mongoose");
-const app = express();
 require("dotenv").config();
+
+const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -23,9 +25,15 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
 mongoose.connect(
-  "mongodb+srv://ashusingh_007:ashu2309@mycluster0.bp0om.mongodb.net/?retryWrites=true&w=majority",
-  { useNewUrlParser: true }
+  "mongodb+srv://ashusingh_007:Connect-to-ashu@connectinn.8t8eawe.mongodb.net/your_database_name?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  }
 );
 
 const userSchema = new mongoose.Schema({
@@ -40,6 +48,7 @@ const userSchema = new mongoose.Schema({
 userSchema.plugin(passportLocalMongoose);
 
 const User = mongoose.model("User", userSchema);
+
 const questAndAnswerSchema = new mongoose.Schema({
   email: String,
   quest: String,
@@ -56,181 +65,29 @@ const questAndAnswerSchema = new mongoose.Schema({
 
 const Question = mongoose.model("Question", questAndAnswerSchema);
 
-passport.use(User.createStrategy());
+passport.use(new LocalStrategy(User.authenticate()));
 
-passport.serializeUser(function (user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function (user, done) {
-  done(null, user);
-});
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.get("/", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-  }
-  res.render("home", { isauth: isauth, currUser: currUser });
+  const isauth = req.isAuthenticated();
+  const currUser = req.user;
+  res.render("home", { isauth, currUser });
 });
 
 app.get("/login", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-  }
-  res.render("login", { isauth: isauth, currUser: currUser });
+  const isauth = req.isAuthenticated();
+  const currUser = req.user;
+  res.render("login", { isauth, currUser });
 });
+
 app.get("/signup", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-  }
-  res.render("signup", { isauth: isauth, currUser: currUser });
+  const isauth = req.isAuthenticated();
+  const currUser = req.user;
+  res.render("signup", { isauth, currUser });
 });
 
-app.get("/discussion", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-    Question.find({}, function (err, questions) {
-      if (err) {
-        console.log(err);
-      } else {
-        res.render("discussion", {
-          questions: questions,
-          isauth: isauth,
-          currUser: currUser,
-        });
-      }
-    });
-  } else {
-    res.redirect("/login");
-  }
-});
-app.get("/discussion/:sorting", function (req, res) {
-  var sortType = req.params.sorting;
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-    Question.find({}, function (err, questions) {
-      if (err) {
-        console.log(err);
-      } else {
-        questions.sort(function (a, b) {
-          if (sortType == "Most Viewed") {
-            return a.views < b.views ? -1 : a.views > b.views ? 1 : 0;
-          } else if (sortType == "Most Liked") {
-            return a.likes < b.likes ? -1 : a.likes > b.likes ? 1 : 0;
-          } else if (sortType == "Most Answered") {
-            return a.answer.length < b.answer.length
-              ? -1
-              : a.answer.length > b.answer.length
-              ? 1
-              : 0;
-          }
-        });
-        res.render("discussion", {
-          questions: questions,
-          isauth: isauth,
-          currUser: currUser,
-        });
-      }
-    });
-  } else {
-    res.redirect("/login");
-  }
-});
-app.post("/discussion", function (req, res) {
-  res.redirect("/discussion/" + req.body.sortType);
-});
-app.get("/ask", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-    res.render("ask", { isauth: isauth, currUser: currUser });
-  } else {
-    res.redirect("/login");
-  }
-});
-
-app.get("/logout", function (req, res) {
-  req.logout();
-  res.redirect("/");
-});
-
-app.get("/answers/:questionId", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-    const questionId = req.params.questionId;
-    Question.findById(questionId, function (err, question) {
-      question.views = question.views + 1;
-      question.save();
-      res.render("answers", {
-        isauth: isauth,
-        currUser: currUser,
-        question: question,
-      });
-    });
-  } else {
-    res.redirect("/login");
-  }
-});
-app.get("/likes/:questionId", function (req, res) {
-  const questionId = req.params.questionId;
-  Question.findById(questionId, function (err, question) {
-    question.likes = question.likes + 1;
-    question.save();
-    res.redirect("/discussion");
-  });
-});
-app.get("/profile/:userID", function (req, res) {
-  var isauth = 0;
-  var currUser;
-  if (req.isAuthenticated()) {
-    isauth = 1;
-    currUser = req.user;
-    const userId = req.params.userID;
-    var sameUser = 0;
-
-    User.findById(userId, function (err, user) {
-      if (currUser._id == userId) {
-        sameUser = 1;
-        console.log("GOOD");
-        res.render("profile", {
-          isauth: isauth,
-          currUser: currUser,
-          user: user,
-          sameUser: sameUser,
-        });
-      } else {
-        res.render("profile", {
-          isauth: isauth,
-          currUser: currUser,
-          user: user,
-          sameUser: sameUser,
-        });
-      }
-    });
-  } else {
-    res.redirect("/login");
-  }
-});
 app.post("/signup", function (req, res) {
   User.register(
     {
@@ -244,36 +101,88 @@ app.post("/signup", function (req, res) {
     function (err, user) {
       if (err) {
         console.log(err);
-        res.redirect("/signup");
-      } else {
-        passport.authenticate("local")(req, res, function () {
-          res.redirect("/discussion");
-        });
+        return res.redirect("/signup");
       }
-    }
-  );
-});
-
-app.post("/login", function (req, res) {
-  const user = new User({
-    username: req.body.username,
-    password: req.body.password,
-  });
-  req.login(user, function (err) {
-    if (err) {
-      console.log(err);
-      res.redirect("login");
-    } else {
       passport.authenticate("local")(req, res, function () {
         res.redirect("/discussion");
       });
     }
+  );
+});
+
+app.post("/login", passport.authenticate("local", {
+  successRedirect: "/discussion",
+  failureRedirect: "/login",
+}));
+
+app.get("/logout", function (req, res) {
+  req.logout();
+  res.redirect("/");
+});
+
+// Discussion Routes
+app.get("/discussion", isAuthenticated, function (req, res) {
+  Question.find({}, function (err, questions) {
+    if (err) {
+      console.log(err);
+      return res.redirect("/login");
+    }
+    const isauth = true;
+    const currUser = req.user;
+    res.render("discussion", { questions, isauth, currUser });
   });
 });
 
-app.post("/ask", function (req, res) {
-  var isauth = 1;
-  var currUser = req.user;
+app.get("/discussion/:sorting", isAuthenticated, function (req, res) {
+  const sortType = req.params.sorting;
+  Question.find({}, function (err, questions) {
+    if (err) {
+      console.log(err);
+      return res.redirect("/login");
+    }
+    questions.sort(function (a, b) {
+      if (sortType === "Most Viewed") {
+        return a.views - b.views;
+      } else if (sortType === "Most Liked") {
+        return a.likes - b.likes;
+      } else if (sortType === "Most Answered") {
+        return a.answer.length - b.answer.length;
+      }
+    });
+    const isauth = true;
+    const currUser = req.user;
+    res.render("discussion", { questions, isauth, currUser });
+  });
+});
+
+app.post("/discussion", isAuthenticated, function (req, res) {
+  res.redirect("/discussion/" + req.body.sortType);
+});
+
+// Profile Route
+app.get("/profile/:userID", isAuthenticated, function (req, res) {
+  const userId = req.params.userID;
+  const sameUser = req.user._id == userId;
+  User.findById(userId, function (err, user) {
+    if (err) {
+      console.log(err);
+      return res.redirect("/login");
+    }
+    const isauth = true;
+    const currUser = req.user;
+    res.render("profile", { user, isauth, currUser, sameUser });
+  });
+});
+
+// Ask Route
+app.get("/ask", isAuthenticated, function (req, res) {
+  const isauth = true;
+  const currUser = req.user;
+  res.render("ask", { isauth, currUser });
+});
+
+app.post("/ask", isAuthenticated, function (req, res) {
+  const currUser = req.user;
   const newQuest = new Question({
     postedBy: currUser,
     quest: req.body.quest,
@@ -284,17 +193,58 @@ app.post("/ask", function (req, res) {
   res.redirect("/discussion");
 });
 
-app.post("/answers/:questionId", function (req, res) {
-  var isauth = 1;
-  var currUser = req.user;
+// Answers Route
+app.get("/answers/:questionId", isAuthenticated, function (req, res) {
   const questionId = req.params.questionId;
   Question.findById(questionId, function (err, question) {
-    question.answer.push({ answer: req.body.ans, name: currUser.name });
+    if (err) {
+      console.log(err);
+      return res.redirect("/login");
+    }
+    question.views += 1;
+    question.save();
+    const isauth = true;
+    const currUser = req.user;
+    res.render("answers", { question, isauth, currUser });
+  });
+});
+
+app.post("/answers/:questionId", isAuthenticated, function (req, res) {
+  const questionId = req.params.questionId;
+  Question.findById(questionId, function (err, question) {
+    if (err) {
+      console.log(err);
+      return res.redirect("/login");
+    }
+    question.answer.push({ answer: req.body.ans, name: req.user.name });
     question.save();
     res.redirect("/answers/" + question._id);
+  });
+});
+
+// Likes Route
+app.get("/likes/:questionId", isAuthenticated, function (req, res) {
+  const questionId = req.params.questionId;
+  Question.findById(questionId, function (err, question) {
+    if (err) {
+      console.log(err);
+      return res.redirect("/login");
+    }
+    question.likes += 1;
+    question.save();
+    res.redirect("/discussion");
   });
 });
 
 app.listen(process.env.PORT || 3000, function (req, res) {
   console.log(`Server started`);
 });
+
+
+// Middleware to check authentication
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/login");
+}
