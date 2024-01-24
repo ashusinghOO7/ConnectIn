@@ -18,13 +18,14 @@ Explore the live hosted project: [ConnectIn Live](https://connectin-production-b
   - Sort questions based on the maximum number of likes.
   - Sort questions based on the maximum number of views.
   - Sort questions based on the maximum number of comments.
+  - Sort questions based on the most recent.
 
 - **User-Friendly Interface:** The platform offers an intuitive and easy-to-navigate design.
 
 ## Technologies Used
 
 - **Frontend:**
-  - HTML
+  - ejs
   - CSS
   - JavaScript
 
@@ -33,17 +34,24 @@ Explore the live hosted project: [ConnectIn Live](https://connectin-production-b
   - Express.js
 
 - **Database:**
-  - [Specify your database system]
+  - MongoDB
 
 - **Deployment:**
-  - [Specify any additional tools or platforms used for deployment]
+  - Railway
 
 ## Getting Started Locally
 
 To run the project locally, follow these steps:
 
 1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/your-username/connectin.git
+   
+   [https://github.com/ashusinghOO7/ConnectIn.git]
    cd connectin
+
+2. Install Dependencies:
+
+   npm install
+   
+4. Run the application:
+
+   npm start
