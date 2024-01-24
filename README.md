@@ -4,7 +4,6 @@
 
 ConnectIn is a platform designed to foster communication and knowledge-sharing between junior and senior members. The project was initiated during the COVID-19 pandemic to address the reduced interaction between team members. ConnectIn serves as a Q&A hub, allowing juniors to ask questions and seniors to provide answers and insights, similar to the functionality found on platforms like Quora.
 
-![ConnectIn Screenshot](link_to_screenshot_image)
 
 ## Live Demo
 
